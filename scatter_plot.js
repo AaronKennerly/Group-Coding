@@ -7,39 +7,42 @@ class Scatter {
         .style('width', '910px')
         .style('height', '1080px');
 
+
+          // Create the chart
+        const margin = { top: 20, right: 20, bottom: 80, left: 40 };
+        const width = 900 - margin.left - margin.right;
+        const height = 1080 - margin.top - margin.bottom;
+
         const svg = div.append('svg')
             .style('width', '100%')
-            .style('height', '100%')
+            .style('height','100%')
             .append('g')
-            .attr('transform','translate(50 375)');
+            .attr("transform","translate(" + margin.left + "," + margin.top + ")");
 
       d3.csv('Output.csv').then((data) => {
         // Parse the data
-    
-        const stellar_mag = d3.map(data, function(d) { return d.stellar_magnitude});
-       const discovery_year= d3.map(data, function(d) {return d.discovery_year});
-       
+      const stellar_mag = d3.map(data, function(d) { return d.stellar_magnitude});
+      const discovery_year= d3.map(data, function(d) {return d.discovery_year});
 
-      // Create the chart
-      const margin = { top: 20, right: 20, bottom: 30, left: 40 };
-      const width = 900 - margin.left - margin.right;
-      const height = 500 - margin.top - margin.bottom;
+      // Group the planets by planet type
+      const groups = d3.group(data, d => d.planet_type);
+      
     
-      const x = d3.scaleLinear().range([0, width]);
-      const y = d3.scaleLinear().range([height, 0]);
+      const x = d3.scaleLinear()
+      .domain([d3.min(discovery_year), d3.max(discovery_year)])
+      .range([1, width]);
+
+      const y = d3.scaleLinear()
+      .domain([0, 30])
+      .range([height, 0]);
     
       const xAxis = d3.axisBottom(x)
-      .ticks(10)
       .tickFormat(d3.format(".0f"));
 
-      const yAxis = d3.axisLeft(y)
-      .ticks(20);
+      const yAxis = d3.axisLeft(y);
+  
     
-      x.domain([d3.min(discovery_year), d3.max(discovery_year)]);
-      y.domain([d3.min(stellar_mag), d3.max(stellar_mag)]);
-    
-      svg
-        .append("g")
+      svg.append("g")
         .attr("class", "date-axis")
         .attr("transform", "translate(0," + height + ")")
         .call(xAxis);
@@ -48,43 +51,29 @@ class Scatter {
       .attr("class", "magnitude-axis")
       .call(yAxis);
         
+      
       // Create circles representing the data points
-      svg
-        .selectAll("circle")
+      svg.append("g")
+        .attr("class", "dots-group")
+        .selectAll("dot")
         .data(data)
         .enter()
         .append("circle")
-        .attr("cx", (d) => x(d.discovery_year))
-        .attr("cy", (d) => y(d.stellar_magnitude))
-        .attr("r", 4)
-        .attr("fill", "blue");
+          .attr("cx", (d) => x(d.discovery_year) + Math.random()*10 - 5)
+          .attr("cy", (d) => y(d.stellar_magnitude) + Math.random()*10 - 5)
+          .attr("r", 1.5)
+          .style("opacity", 0.5)
+          .style("fill", "blue");
 
-      // Update the scatterplot based on the slider values
-      d3.select("#date-slider").on("input", () => {
-        const value = +d3.select("#date-slider").node().value;
-        x.domain([0, value]);
-        svg.select(".date-axis").transition().duration(1000).call(xAxis);
-        svg
-          .selectAll("circle")
-          .transition()
-          .duration(1000)
-          .attr("cx", d => x(d.xValue));
-          });
-
-      // Update the scatterplot based on the slider values
-      d3.select("#magnitude-slider").on("input", () => {
-        const value = +d3.select("#magnitude-slider").node().value;
-        x.domain([0, value]);
-        svg.select(".magnitude-axis").transition().duration(1000).call(yAxis);
-        svg
-          .selectAll("circle")
-          .transition()
-          .duration(1000)
-          .attr("cy", d => y(d.yValue));
-          });
     });
+
   }
   setResultText(str) {
-    this.legend.html(str);
+    const dots = d3.selectAll('.dots-group circle');
+    const filteredData = dots.data().filter((d) => d.planet_type === str);
+
+        dots.data(filteredData)
+          .attr("cx", (d) => x(d.discovery_year) + Math.random()*10 - 5)
+          .attr("cy", (d) => y(d.stellar_magnitude) + Math.random()*10 - 5);
 }
 }

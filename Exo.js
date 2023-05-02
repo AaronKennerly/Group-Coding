@@ -133,7 +133,4 @@ class Exo {
         });
 
     }
-    setResultText(str) {
-        this.legend.html(str);
-    }
 }

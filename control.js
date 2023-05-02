@@ -14,7 +14,6 @@ new (class Control {
     }
     
     Update(str) {
-        this.#viewA.setResultText(str);
         this.#viewB.setResultText(str);
 
     }
