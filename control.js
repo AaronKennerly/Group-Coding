@@ -15,6 +15,5 @@ new (class Control {
     
     Update(str) {
         this.#viewB.setResultText(str);
-
     }
 })()

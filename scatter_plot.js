@@ -2,11 +2,13 @@ class Scatter {
 
     constructor(con, root) {
         this.con = con;
+        this.selectedPlanetType = '';
 
         const div = root.append('div')
         .style('width', '910px')
         .style('height', '1080px');
 
+        const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
 
           // Create the chart
         const margin = { top: 20, right: 20, bottom: 80, left: 40 };
@@ -23,23 +25,20 @@ class Scatter {
         // Parse the data
       const stellar_mag = d3.map(data, function(d) { return d.stellar_magnitude});
       const discovery_year= d3.map(data, function(d) {return d.discovery_year});
-
-      // Group the planets by planet type
-      const groups = d3.group(data, d => d.planet_type);
       
     
-      const x = d3.scaleLinear()
+      this.x = d3.scaleLinear()
       .domain([d3.min(discovery_year), d3.max(discovery_year)])
       .range([1, width]);
 
-      const y = d3.scaleLinear()
+      this.y = d3.scaleLinear()
       .domain([0, 30])
       .range([height, 0]);
     
-      const xAxis = d3.axisBottom(x)
+      const xAxis = d3.axisBottom(this.x)
       .tickFormat(d3.format(".0f"));
 
-      const yAxis = d3.axisLeft(y);
+      const yAxis = d3.axisLeft(this.y);
   
     
       svg.append("g")
@@ -50,30 +49,50 @@ class Scatter {
       svg.append("g")
       .attr("class", "magnitude-axis")
       .call(yAxis);
-        
+  
       
       // Create circles representing the data points
-      svg.append("g")
+      this.dots = svg.append("g")
         .attr("class", "dots-group")
         .selectAll("dot")
-        .data(data)
+        .data(data.filter((d) => !this.selectedPlanetType || d.planet_type == this.selectedPlanetType))
         .enter()
         .append("circle")
-          .attr("cx", (d) => x(d.discovery_year) + Math.random()*10 - 5)
-          .attr("cy", (d) => y(d.stellar_magnitude) + Math.random()*10 - 5)
-          .attr("r", 1.5)
-          .style("opacity", 0.5)
-          .style("fill", "blue");
+          .attr("cx", (d) => this.x(d.discovery_year) + Math.random()*10 - 4)
+          .attr("cy", (d) => this.y(d.stellar_magnitude) + Math.random()*10 - 4)
+          .attr("r", 2.5)
+          .style("opacity", 0.4)
+          .style("fill", d => colorScale(d.planet_type));
 
+
+       this.data = data;
     });
 
   }
-  setResultText(str) {
-    const dots = d3.selectAll('.dots-group circle');
-    const filteredData = dots.data().filter((d) => d.planet_type === str);
-
-        dots.data(filteredData)
-          .attr("cx", (d) => x(d.discovery_year) + Math.random()*10 - 5)
-          .attr("cy", (d) => y(d.stellar_magnitude) + Math.random()*10 - 5);
-}
+  
+  
+  setResultText(planetType) {
+    const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
+    this.selectedPlanetType = planetType;
+    
+    // Update the dots selection with the filtered data
+    this.dots = this.dots.data(this.data.filter((d) => d && d.planet_type == planetType));
+  
+    // Remove any circles that are no longer needed
+    this.dots.exit().remove();
+  
+    this.dots.enter()
+    .append("circle")
+    .attr("cx", (d) => this.x(d.discovery_year) + Math.random()*10 - 4)
+    .attr("cy", (d) => this.y(d.stellar_magnitude) + Math.random()*10 - 4)
+    .attr("r", 2.5)
+    .style("opacity", 0.4)
+    .style("fill", d => colorScale(d.planet_type));
+  
+    // Update the attributes of all circles in the selection
+    this.dots
+      .attr("cx", (d) => this.x(d.discovery_year) + Math.random()*10 - 4)
+      .attr("cy", (d) => this.y(d.stellar_magnitude) + Math.random()*10 - 4)
+      .style("fill", d => colorScale(d.planet_type));
+  }
 }
