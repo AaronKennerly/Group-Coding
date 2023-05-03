@@ -72,6 +72,10 @@ class Scatter {
   
   
   setResultText(planetType) {
+    // Only update the visualization if the new planetType is different from the previously selected planetType
+    if (planetType !== this.selectedPlanetType) {
+      this.selectedPlanetType = planetType;
+
     const colorScale = d3.scaleOrdinal(d3.schemeTableau10);
     this.selectedPlanetType = planetType;
     
@@ -83,16 +87,19 @@ class Scatter {
   
     this.dots.enter()
     .append("circle")
+    .attr("class", "dot")
     .attr("cx", (d) => this.x(d.discovery_year) + Math.random()*10 - 4)
     .attr("cy", (d) => this.y(d.stellar_magnitude) + Math.random()*10 - 4)
     .attr("r", 2.5)
     .style("opacity", 0.4)
     .style("fill", d => colorScale(d.planet_type));
   
-    // Update the attributes of all circles in the selection
+   // Update the attributes of all circles in the selection
     this.dots
       .attr("cx", (d) => this.x(d.discovery_year) + Math.random()*10 - 4)
       .attr("cy", (d) => this.y(d.stellar_magnitude) + Math.random()*10 - 4)
       .style("fill", d => colorScale(d.planet_type));
+  
+    }
   }
 }
